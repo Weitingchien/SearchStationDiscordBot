@@ -1,0 +1,18 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "discord-bot",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "SET NODE_ENV=development&&nodemon main.js",
+    "start:prod": "SET NODE_ENV=production&&nodemon main.js"
+  },
+  "author": "Ting",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0",
+    "twit": "^2.2.11"
+  }
+}
