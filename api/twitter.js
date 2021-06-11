@@ -1,4 +1,5 @@
 const twit = require('./twit');
+
 module.exports.findTweet = client => {
   const stream = twit.stream('statuses/filter', {
     follow: [process.env.TWITTER_USER_ID, '1234824733457125377'] //my twitter specify whichever Twitter ID you want to follow
@@ -16,7 +17,9 @@ module.exports.findTweet = client => {
     ) {
       return;
     }
-    let url = `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`;
+    const url = `https://twitter.com/${tweet.user.screen_name}/status/${
+      tweet.id_str
+    }`;
     try {
       client.channels.cache.get(process.env.DISCORD_CHANNEL_ID).send(url); //discord.js v12需要使用.cache存取channels集合
     } catch (err) {

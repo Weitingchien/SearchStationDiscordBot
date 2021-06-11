@@ -6,59 +6,61 @@ class SearchStationDiscordBot extends Client {
   constructor(props) {
     super(props);
     this.commands = new Collection();
+    this.cooldowns = new Collection();
     this.start();
   }
+
   async loadCommands() {
     try {
       const commandFolders = await readdir('./commands'); //commandFolders的值是['info']
-      for (const folder of commandFolders) {
+      commandFolders.forEach(async folder => {
+        const files = await readdir(`./commands/${folder}`); //['ping.js]
+        files.forEach(async file => {
+          const command = require(`../commands/${folder}/${file}`);
+          this.commands.set(command.name, command);
+          if (!this.cooldowns.has(command.name)) {
+            this.cooldowns.set(command.name, new Collection());
+          }
+        });
+      });
+      //這邊使用下面的for...of寫法，ESlint會出現iterators/generators require regenerator-runtime, which is too heavyweight for this guide to allow them. Separately, loops should be avoided in favor of array iterations.
+      /*for (const folder of commandFolders) {
         const files = await readdir(`./commands/${folder}`);
         for (const file of files) {
           const command = require(`../commands/${folder}/${file}`);
           this.commands.set(command.name, command);
         }
-      }
+      } */
     } catch (err) {
       console.log(err);
     }
-    /*     for (const folder of commandFolders) {
-      const commandFiles = fs.readdir(`./commands/${folder}`, (err, files) => {
-        if (err) this.log(err);
-        else {
-          files.filter(file => file.endsWith('.js'));
-        }
-      });
-      //.filter(file => file.endsWith('.js'));
-      for (const file of commandFiles) {
-        const command = require(`../commands/${folder}/${file}`);
-        this.commands.set(command.name, command);
-      }
-    } */
   }
+
   async loadEvents() {
     try {
       const eventsFiles = await readdir('./events');
-      for (const file of eventsFiles) {
+      eventsFiles.forEach(file => {
         //console.log(file.split('.')); => [ 'message', 'js' ] [ 'ready', 'js' ]
         const event = require(`../events/${file}`);
         this.on(file.split('.')[0], event.bind(null, this)); // call、apply回傳function執行結果，但bind是回傳綁定this後的原函式
-      }
-      console.log(this);
+      });
     } catch (err) {
       console.log(err);
     }
 
-    /*     for (const file of eventsFiles) {
+    /*for (const file of eventsFiles) {
       const event = require(`../events/${file}`);
       this.on(file.split('.')[0], event.bind(null, this));
       console.log(this);
     } */
     //.filter(file => file.endsWith('.js'));
   }
+
   start() {
     this.loadCommands();
     this.loadEvents();
   }
+
   build() {
     this.login(process.env.TOKEN);
   }

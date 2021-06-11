@@ -1,10 +1,12 @@
 const { MessageEmbed } = require('discord.js');
+
 module.exports = {
   name: 'ping',
   category: 'info',
   description: 'Return latency and API ping',
+  cooldown: 10,
 
-  execute: async (client, message, args) => {
+  execute: async (client, message) => {
     const msg = await message.channel.send(`Pinging...`);
     const embed = new MessageEmbed()
       .setColor('#e70000')

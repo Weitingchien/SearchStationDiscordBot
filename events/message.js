@@ -5,13 +5,42 @@ module.exports = async (client, message) => {
     .trim()
     .split(/ +/);
   //使用shift()獲取陣列中的第一個元素
-  const command = args.shift().toLowerCase();
-  if (!client.commands.has(command)) return; //如果client.commands集合裡沒有這個命令就return
-  if (!message.content.startsWith(process.env.DISCORD_Bot_Prefix)) return; //如果開頭沒有prefix就return
+  const cmd = args.shift().toLowerCase();
+  const command =
+    client.commands.get(cmd) ||
+    client.commands.find(el => el.aliases && el.aliases.includes(cmd));
+
+  if (message.channel.type === 'dm') return; //如果是直接消息頻道就return
+  if (!client.commands.has(cmd)) return; //如果client.cmd集合裡沒有這個命令就return
+  if (
+    !message.content.startsWith(process.env.DISCORD_Bot_Prefix) ||
+    message.author.bot
+  )
+    return; //如果訊息開頭沒有prefix或是發訊息的是機器人就return
+
+  const currentTime = Date.now();
+  const timeStamps = client.cooldowns.get(command.name); //先前在SearchStationDiscordBot定義2個Collection，這邊使用到第二個Collection
+  const coolDownAmount = (command.cooldown || 2) * 1000;
+
+  console.log(timeStamps);
+
+  if (timeStamps.has(message.author.id)) {
+    const expirationTime = timeStamps.get(message.author.id) + coolDownAmount; //當下的時間 + 冷卻時間 = 到期時間
+    if (currentTime < expirationTime) {
+      const timeLeft = (expirationTime - currentTime) / 1000;
+
+      return message.reply(
+        `Please wait ${timeLeft.toFixed(1)} more seconds before using ${
+          command.name
+        }`
+      );
+    }
+  }
+  timeStamps.set(message.author.id, currentTime); //當使用者發送訊息把當下的時間傳進去
+  setTimeout(() => timeStamps.delete(message.author.id), coolDownAmount);
 
   try {
-    //client.commands.get(command)會返回一個物件，裡面有我們模組內自定義的內容
-    client.commands.get(command).execute(client, message, args); //執行對應指令的execute方法
+    command.execute(client, message); //執行對應指令的execute方法
   } catch (err) {
     console.error(err);
     message.reply('There was an error trying to execute that command!');
