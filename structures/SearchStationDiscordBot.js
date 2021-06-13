@@ -8,6 +8,7 @@ class SearchStationDiscordBot extends Client {
     this.commands = new Collection();
     this.cooldowns = new Map();
     this.queue = new Map();
+    this.config = require('../config');
 
     this.start();
   }

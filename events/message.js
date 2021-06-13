@@ -22,7 +22,7 @@ module.exports = async (client, message) => {
   const timeStamps = client.cooldowns.get(command.name); //先前在SearchStationDiscordBot定義2個Collection，這邊使用到第二個Collection
   const coolDownAmount = (command.cooldown || 2) * 1000;
 
-  console.log(timeStamps);
+  console.log(command);
 
   if (timeStamps.has(message.author.id)) {
     const expirationTime = timeStamps.get(message.author.id) + coolDownAmount; //當下的時間 + 冷卻時間 = 到期時間
