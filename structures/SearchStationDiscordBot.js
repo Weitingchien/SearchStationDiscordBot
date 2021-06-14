@@ -6,7 +6,10 @@ class SearchStationDiscordBot extends Client {
   constructor(props) {
     super(props);
     this.commands = new Collection();
-    this.cooldowns = new Collection();
+    this.cooldowns = new Map();
+    this.queue = new Map();
+    this.config = require('../config');
+
     this.start();
   }
 
