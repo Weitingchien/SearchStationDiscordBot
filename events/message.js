@@ -11,7 +11,7 @@ module.exports = async (client, message) => {
     client.commands.find(el => el.aliases && el.aliases.includes(cmd)); //返回一個物件，才能讓我們使用模組內的execute函式
 
   if (message.channel.type === 'dm') return; //如果是直接消息頻道就return
-  if (!client.commands.has(cmd)) return; //如果client.cmd集合裡沒有這個命令就return
+  //if (!client.commands.has(cmd)) return; //如果client.cmd集合裡沒有這個命令就return
   if (
     !message.content.startsWith(process.env.DISCORD_Bot_Prefix) ||
     message.author.bot
@@ -21,8 +21,6 @@ module.exports = async (client, message) => {
   const currentTime = Date.now();
   const timeStamps = client.cooldowns.get(command.name); //先前在SearchStationDiscordBot定義2個Collection，這邊使用到第二個Collection
   const coolDownAmount = (command.cooldown || 2) * 1000;
-
-  console.log(command);
 
   if (timeStamps.has(message.author.id)) {
     const expirationTime = timeStamps.get(message.author.id) + coolDownAmount; //當下的時間 + 冷卻時間 = 到期時間
