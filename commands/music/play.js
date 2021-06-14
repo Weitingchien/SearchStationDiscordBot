@@ -14,7 +14,7 @@ const videoPlayer = async (guild, song, client, channel) => {
   try {
     const stream = await ytdl(song.url);
     songQueue.connection
-      .play(stream, { type: 'opus', highWaterMark: 20 }) //使用opus編碼器，代表運行時不需要FFmpeg轉碼器
+      .play(stream, { type: 'opus', highWaterMark: 20, filter: 'audioonly' }) //使用opus編碼器，代表運行時不需要FFmpeg轉碼器
       .on('finish', () => {
         songQueue.songs.shift();
         videoPlayer(guild, songQueue.songs[0], client, channel); //當播放完一首曲子再繼續把剩下的曲子放完
@@ -38,7 +38,7 @@ const videoPlayer = async (guild, song, client, channel) => {
   }
 };
 
-const skipSong = (message, serverQueue, client, channel) => {
+/* const skipSong = (message, serverQueue, client, channel) => {
   if (!message.member.voice.channel)
     return channel.send('You need to be in a channel to execute this command!');
   if (!serverQueue) {
@@ -47,24 +47,26 @@ const skipSong = (message, serverQueue, client, channel) => {
   serverQueue.connection.dispatcher.destroy();
   serverQueue.songs.shift();
   videoPlayer(message.guild, serverQueue.songs[0], client, channel);
-};
+}; */
 
-const stopSong = (message, serverQueue, channel) => {
+/* const stopSong = (message, serverQueue, channel) => {
   if (!message.member.voice.channel)
     return channel.send('You need to be in a channel to execute this command!');
   serverQueue.songs = [];
   serverQueue.connection.dispatcher.destroy();
-};
+}; */
 
 module.exports = {
   name: 'play',
-  aliases: ['skip', 'stop'],
+  aliases: ['p'],
   cooldown: 0,
   description: 'play music',
+  //導出videoPlayer函式表達式給skip
+  videoPlayer,
   async execute(client, message, cmd, args) {
     const channel = client.channels.cache.get('853660743433453599');
     const voiceChannel = message.member.voice.channel; //成員必須在語音頻道
-    const serverQueue = client.queue.get(message.guild.id);
+    const serverQueue = client.queue.get(message.guild.id); //message.guild.id為伺服器ID
     if (!voiceChannel)
       return channel.send(
         'You need to be in a channel to execute this command!'
@@ -75,7 +77,7 @@ module.exports = {
     if (!permissions.has('SPEAK'))
       return channel.send('You dont have the correct permissions');
 
-    if (cmd === 'play') {
+    if (cmd === 'play' || cmd === 'p') {
       if (!args.length)
         return channel.send('You need to send the second argument');
       let song = {};
@@ -115,7 +117,6 @@ module.exports = {
           songs: [] //歌曲會加入到此queueConstructor的song array裡面
         };
         client.queue.set(message.guild.id, queueConstructor);
-        console.log(message.guild.id);
         queueConstructor.songs.push(song);
         try {
           const connection = await voiceChannel.join(); //對應到第79行的play，等待機器人連線才能播放
@@ -135,7 +136,7 @@ module.exports = {
         serverQueue.songs.push(song);
         channel.send(`👍 ${song.title} added to queue!`);
       }
-    } else if (cmd === 'skip') skipSong(message, serverQueue, client, channel);
-    else if (cmd === 'stop') stopSong(message, serverQueue, client, channel);
+    } /* else if (cmd === 'skip') skipSong(message, serverQueue, client, channel);
+    else if (cmd === 'stop') stopSong(message, serverQueue, client, channel); */
   }
 };

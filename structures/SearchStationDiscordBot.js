@@ -21,6 +21,7 @@ class SearchStationDiscordBot extends Client {
         files.forEach(async file => {
           const command = require(`../commands/${folder}/${file}`);
           this.commands.set(command.name, command);
+          //console.log(this.commands);
           if (!this.cooldowns.has(command.name)) {
             this.cooldowns.set(command.name, new Collection());
           }
