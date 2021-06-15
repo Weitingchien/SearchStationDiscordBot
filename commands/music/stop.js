@@ -1,7 +1,7 @@
 module.exports = {
   name: 'stop',
   cooldown: 0,
-  description: 'stop song',
+  description: 'Stop song',
   async execute(client, message) {
     const channel = client.channels.cache.get('853660743433453599');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件

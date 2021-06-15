@@ -3,7 +3,7 @@ const { videoPlayer } = require('./play');
 module.exports = {
   name: 'skip',
   cooldown: 0,
-  description: 'skip current cong',
+  description: 'Skip current song',
   async execute(client, message) {
     const channel = client.channels.cache.get('853660743433453599');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件
@@ -13,10 +13,10 @@ module.exports = {
       );
     }
     if (!songQueue) {
-      return channel.send(`There are no songs in queue`);
+      return channel.send('There are no songs in queue');
     }
-    songQueue.connection.dispatcher.destroy();
     songQueue.songs.shift();
+    songQueue.connection.dispatcher.destroy();
     videoPlayer(message.guild, songQueue.songs[0], client, channel);
   }
 };
