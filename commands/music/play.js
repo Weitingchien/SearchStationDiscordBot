@@ -7,30 +7,30 @@ const videoPlayer = async (guild, song, client, channel) => {
   const songQueue = client.queue.get(guild.id); //回傳一個queueConstructor的物件
   if (!song) {
     searching.delete();
-    songQueue.voiceChannel.leave();
     client.queue.delete(guild.id);
+    songQueue.voiceChannel.leave();
     return;
   }
   try {
     const stream = await ytdl(song.url);
     songQueue.connection
-      .play(stream, { type: 'opus', highWaterMark: 20, filter: 'audioonly' }) //使用opus編碼器，代表運行時不需要FFmpeg轉碼器
+      .play(stream, { type: 'opus', highWaterMark: 15 }) //使用opus編碼器，代表運行時不需要FFmpeg轉碼器
       .on('finish', () => {
         songQueue.songs.shift();
         videoPlayer(guild, songQueue.songs[0], client, channel); //當播放完一首曲子再繼續把剩下的曲子放完
       });
-    const songAdded = new MessageEmbed();
-    songAdded.setColor('#FF0000');
-    songAdded.setTitle(song.title);
-    songAdded.setAuthor('Now playing', client.config.CDIconUrl);
-    songAdded.setThumbnail(song.thumbnail);
-    songAdded.setDescription(song.description);
-    songAdded.addFields(
-      { name: 'Author', value: song.author, inline: true },
-      { name: 'Views', value: song.views, inline: true },
-      { name: 'Duration', value: song.duration, inline: true }
-    );
-    songAdded.setFooter(`Upload: ${song.ago}`, client.config.youtubeIconUrl);
+    const songAdded = new MessageEmbed()
+      .setColor('#FF0000')
+      .setTitle(song.title)
+      .setAuthor('Now playing', client.config.CDIconUrl)
+      .setThumbnail(song.thumbnail)
+      .setDescription(song.description)
+      .addFields(
+        { name: 'Author', value: song.author, inline: true },
+        { name: 'Views', value: song.views, inline: true },
+        { name: 'Duration', value: song.duration, inline: true }
+      )
+      .setFooter(`Upload: ${song.ago}`, client.config.youtubeIconUrl);
     await channel.send(songAdded);
     searching.delete();
   } catch (err) {
@@ -38,29 +38,11 @@ const videoPlayer = async (guild, song, client, channel) => {
   }
 };
 
-/* const skipSong = (message, serverQueue, client, channel) => {
-  if (!message.member.voice.channel)
-    return channel.send('You need to be in a channel to execute this command!');
-  if (!serverQueue) {
-    return channel.send(`There are no songs in queue`);
-  }
-  serverQueue.connection.dispatcher.destroy();
-  serverQueue.songs.shift();
-  videoPlayer(message.guild, serverQueue.songs[0], client, channel);
-}; */
-
-/* const stopSong = (message, serverQueue, channel) => {
-  if (!message.member.voice.channel)
-    return channel.send('You need to be in a channel to execute this command!');
-  serverQueue.songs = [];
-  serverQueue.connection.dispatcher.destroy();
-}; */
-
 module.exports = {
   name: 'play',
   aliases: ['p'],
   cooldown: 0,
-  description: 'play music',
+  description: 'Play music',
   //導出videoPlayer函式表達式給skip
   videoPlayer,
   async execute(client, message, cmd, args) {
@@ -103,7 +85,8 @@ module.exports = {
             duration: video.timestamp,
             ago: video.ago,
             views: video.views,
-            author: video.author.name
+            author: video.author.name,
+            requester: message.author.username
           };
         } else {
           channel.send('Error finding video!');
@@ -134,9 +117,8 @@ module.exports = {
         }
       } else {
         serverQueue.songs.push(song);
-        channel.send(`👍 ${song.title} added to queue!`);
+        channel.send(`🎶 ${song.title} added to queue!`);
       }
-    } /* else if (cmd === 'skip') skipSong(message, serverQueue, client, channel);
-    else if (cmd === 'stop') stopSong(message, serverQueue, client, channel); */
+    }
   }
 };

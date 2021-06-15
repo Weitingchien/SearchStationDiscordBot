@@ -4,7 +4,7 @@ const { readdir } = require('fs/promises');
 module.exports = {
   name: 'help',
   cooldown: 1,
-  description: 'get Music commands name and description',
+  description: 'Get music commands name and description',
   async execute(client, message) {
     const musicCommands = new MessageEmbed()
       .setAuthor('Music Commands', client.user.displayAvatarURL())

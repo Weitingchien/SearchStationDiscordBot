@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 module.exports = {
   name: 'resume',
   cooldown: 0,
-  description: 'resume song',
+  description: 'Resume song',
   execute(client, message) {
     const channel = client.channels.cache.get('853660743433453599');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件
