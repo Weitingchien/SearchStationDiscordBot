@@ -1,6 +1,8 @@
+const { MessageEmbed } = require('discord.js');
 const ytdl = require('ytdl-core-discord');
 const ytSearch = require('yt-search');
-const { MessageEmbed } = require('discord.js');
+const formatSecond = require('../.././plugin/timeTransformer'); //秒數轉時分秒
+const thousandsSeparators = require('../../plugin/thousandsSeparators'); //千分位分隔符號
 
 const videoPlayer = async (guild, song, client, channel) => {
   const searching = await channel.send('Searching...');
@@ -19,7 +21,12 @@ const videoPlayer = async (guild, song, client, channel) => {
         songQueue.songs.shift();
         videoPlayer(guild, songQueue.songs[0], client, channel); //當播放完一首曲子再繼續把剩下的曲子放完
       });
-    const songAdded = new MessageEmbed()
+    const songAdded = new MessageEmbed();
+    if (song.isUrl === true) {
+      searching.delete();
+      return;
+    }
+    songAdded
       .setColor('#FF0000')
       .setTitle(song.title)
       .setAuthor('Now playing', client.config.CDIconUrl)
@@ -34,7 +41,7 @@ const videoPlayer = async (guild, song, client, channel) => {
     await channel.send(songAdded);
     searching.delete();
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -43,6 +50,7 @@ module.exports = {
   aliases: ['p'],
   cooldown: 0,
   description: 'Play music',
+  //permissions: ['CONNECT', 'SPEAK'],
   //導出videoPlayer函式表達式給skip
   videoPlayer,
   async execute(client, message, cmd, args) {
@@ -65,9 +73,15 @@ module.exports = {
       let song = {};
       if (ytdl.validateURL(args[0])) {
         const songInfo = await ytdl.getInfo(args[0]);
+        //console.log(songInfo);
         song = {
+          isUrl: true,
           title: songInfo.videoDetails.title,
-          url: songInfo.videoDetails.video_url
+          url: songInfo.videoDetails.video_url,
+          views: thousandsSeparators(songInfo.videoDetails.viewCount),
+          duration: formatSecond(songInfo.videoDetails.lengthSeconds),
+          publishDate: songInfo.videoDetails.publishDate,
+          requester: message.author.username
         };
         // If the video is not a URL then use keywords to find that video.
       } else {
@@ -76,15 +90,17 @@ module.exports = {
           return videoResult.videos.length > 1 ? videoResult.videos[0] : null;
         };
         const video = await videoFinder(args.join(' '));
+        console.log(video);
         if (video) {
           song = {
+            isUrl: false,
             title: video.title,
             url: video.url,
             description: video.description,
             thumbnail: video.thumbnail,
             duration: video.timestamp,
             ago: video.ago,
-            views: video.views,
+            views: thousandsSeparators(video.views),
             author: video.author.name,
             requester: message.author.username
           };

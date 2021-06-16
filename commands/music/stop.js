@@ -10,6 +10,11 @@ module.exports = {
         'You need to be in a channel to execute this command!'
       );
     }
+    if (!songQueue) {
+      return channel.send({
+        embed: { description: 'There are no songs need to stop' }
+      });
+    }
     songQueue.songs = [{}];
     songQueue.connection.dispatcher.end('Stopped!');
   }
