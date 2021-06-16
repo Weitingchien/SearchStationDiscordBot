@@ -15,15 +15,27 @@ module.exports = {
         embed: { title: 'There is nothing playing right now' }
       });
     }
-    channel.send({
-      embed: {
-        title: 'Now Playing',
-        color: '#FF0000',
-        description: `${
-          songQueue.songs[0].title
-        } - ${message.author.toString()}`,
-        thumbnail: songQueue.songs[0].thumbnail
-      }
-    });
+    if (!songQueue.songs[0].description) {
+      channel.send({
+        embed: {
+          title: 'Now Playing',
+          color: '#FF0000',
+          description: `${
+            songQueue.songs[0].title
+          } - ${message.author.toString()}`
+        }
+      });
+    } else {
+      channel.send({
+        embed: {
+          title: 'Now Playing',
+          color: '#FF0000',
+          description: `${
+            songQueue.songs[0].title
+          } - ${message.author.toString()}`,
+          thumbnail: songQueue.songs[0].thumbnail
+        }
+      });
+    }
   }
 };

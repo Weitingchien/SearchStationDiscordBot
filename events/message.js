@@ -9,15 +9,60 @@ module.exports = async (client, message) => {
   const command =
     client.commands.get(cmd) ||
     client.commands.find(el => el.aliases && el.aliases.includes(cmd)); //返回一個物件，才能讓我們使用模組內的execute函式
-
   if (message.channel.type === 'dm') return; //如果是直接消息頻道就return
-  //if (!client.commands.has(cmd)) return; //如果client.cmd集合裡沒有這個命令就return
   if (
     !message.content.startsWith(process.env.DISCORD_Bot_Prefix) ||
     message.author.bot
   )
     return; //如果訊息開頭沒有prefix或是發訊息的是機器人就return
 
+  const allPermissions = [
+    'ADMINISTRATOR',
+    'CREATE_INSTANT_INVITE',
+    'KICK_MEMBERS',
+    'BAN_MEMBERS',
+    'MANAGE_CHANNELS',
+    'MANAGE_GUILD',
+    'ADD_REACTIONS',
+    'VIEW_AUDIT_LOG',
+    'PRIORITY_SPEAKER',
+    'STREAM',
+    'VIEW_CHANNEL',
+    'SEND_MESSAGES',
+    'SEND_TTS_MESSAGES',
+    'MANAGE_MESSAGES',
+    'EMBED_LINKS',
+    'ATTACH_FILES',
+    'READ_MESSAGE_HISTORY',
+    'MENTION_EVERYONE',
+    'USE_EXTERNAL_EMOJIS',
+    'CONNECT',
+    'SPEAK',
+    'MUTE_MEMBERS',
+    'DEAFEN_MEMBERS',
+    'MOVE_MEMBERS',
+    'USE_VAD',
+    'CHANGE_NICKNAME',
+    'MANAGE_NICKNAMES',
+    'MANAGE_ROLES',
+    'MANAGE_WEBHOOKS',
+    'MANAGE_EMOJIS'
+  ];
+  /*   const musicPermissions = message.member.voice.channel.permissionsFor(
+    message.client.user
+  ); //獲取此頻道中成員整體權限集
+  if (command.permissions.length) {
+    allPermissions.forEach(el => {
+      if (
+        command.permissions.includes(el) &&
+        message.member.permissions.has(el)
+      ) {
+        console.log(`You can run this command`);
+      } else if (!command.permissions.length) {
+        return console.log(`You dont have the correct permissions`);
+      }
+    });
+  } */
   const currentTime = Date.now();
   const timeStamps = client.cooldowns.get(command.name); //先前在SearchStationDiscordBot定義2個Collection，這邊使用到第二個Collection
   const coolDownAmount = (command.cooldown || 2) * 1000;
