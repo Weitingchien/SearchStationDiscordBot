@@ -18,8 +18,19 @@ module.exports = {
         embed: { description: 'There are no songs in queue' }
       });
     }
-    songQueue.songs.shift();
+    if (songQueue.songList.length >= 1) {
+      songQueue.songList.shift();
+    } /*  else {
+      songQueue.songs.shift();
+    } */
     songQueue.connection.dispatcher.destroy();
-    videoPlayer(message.guild, songQueue.songs[0], client, channel);
+    videoPlayer(
+      message.guild,
+      songQueue.songList[0],
+      //songQueue.songs[0],
+      client,
+      channel
+      //songQueue.songList
+    );
   }
 };

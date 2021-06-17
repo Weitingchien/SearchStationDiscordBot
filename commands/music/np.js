@@ -15,7 +15,7 @@ module.exports = {
         embed: { title: 'There is nothing playing right now' }
       });
     }
-    if (!songQueue.songs[0].description) {
+    if (songQueue.songs[0].isUrl === true) {
       channel.send({
         embed: {
           title: 'Now Playing',

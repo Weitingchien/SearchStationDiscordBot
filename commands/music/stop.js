@@ -15,7 +15,8 @@ module.exports = {
         embed: { description: 'There are no songs need to stop' }
       });
     }
-    songQueue.songs = [{}];
-    songQueue.connection.dispatcher.end('Stopped!');
+    //songQueue.songs = [];
+    songQueue.songList = [{}];
+    await songQueue.connection.dispatcher.end();
   }
 };
