@@ -6,8 +6,9 @@ module.exports = {
   description: 'Skip current song',
   //permissions: ['CONNECT'],
   async execute(client, message) {
-    const channel = client.channels.cache.get('853660743433453599');
+    const channel = client.channels.cache.get('855172507250589726');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件
+    const fastForward = 1;
     if (!message.member.voice.channel) {
       return channel.send(
         'You need to be in a channel to execute this command!'
@@ -20,17 +21,14 @@ module.exports = {
     }
     if (songQueue.songList.length >= 1) {
       songQueue.songList.shift();
-    } /*  else {
-      songQueue.songs.shift();
-    } */
+    }
     songQueue.connection.dispatcher.destroy();
     videoPlayer(
       message.guild,
       songQueue.songList[0],
-      //songQueue.songs[0],
       client,
-      channel
-      //songQueue.songList
+      channel,
+      fastForward
     );
   }
 };

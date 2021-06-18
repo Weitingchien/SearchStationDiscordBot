@@ -3,7 +3,7 @@ module.exports = {
   cooldown: 1,
   description: 'Shows information about the song that is currently playing',
   execute(client, message) {
-    const channel = client.channels.cache.get('853660743433453599');
+    const channel = client.channels.cache.get('855172507250589726');
     const songQueue = client.queue.get(message.guild.id);
     if (!message.member.voice.channel) {
       return channel.send(
