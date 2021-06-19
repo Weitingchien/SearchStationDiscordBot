@@ -5,12 +5,20 @@ const ytSearch = require('yt-search');
 const formatSecond = require('../.././plugin/timeTransformer'); //秒數轉時分秒
 const thousandsSeparators = require('../../plugin/thousandsSeparators'); //千分位分隔符號
 
-const videoPlayer = async (guild, song, client, channel, fastForward) => {
+const countSongs = songQueue => {
+  let numOfSongs = 0;
+  for (let i = 0; i < songQueue.length; i += 1) {
+    numOfSongs += songQueue[i].length;
+  }
+  return numOfSongs;
+};
+
+const videoPlayer = async (guild, song, client, channel) => {
   //只有songList則代入情形會變成song => {} songList => ['https://www.youtube.com/watch?v=kQvT37OzkP8','https://www.youtube.com/watch?v=vzhTpIIQR5I','https://www.youtube.com/watch?v=TcLLpZBWsck'......]
   //只有song => {isUrl: true,title: 'Fujii Kaze - Seishun Sick (Official Video)',url: 'https://www.youtube.com/watch?v=kQvT37OzkP8',views: '6,404,566',duration: '7:58',publishDate: '2020-12-11',requester: 'WeiTing'} songList => []
   const searching = await channel.send('Searching...');
   const songQueue = client.queue.get(guild.id); //回傳一個queueConstructor的物件
-
+  // 執行!stop指令會清空陣列，然後會重新執行videoPlayer()，所以這邊需要return
   if (!song) {
     //song在!stop會被清空 => Boolean([{}]) === true
     searching.delete();
@@ -24,8 +32,20 @@ const videoPlayer = async (guild, song, client, channel, fastForward) => {
     songQueue.connection
       .play(stream, { type: 'opus', highWaterMark: 15 })
       .on('finish', () => {
-        songQueue.songList.shift();
-        videoPlayer(guild, songQueue.songList[0], client, channel);
+        //dispatcher.end();執行會跑到這個callback function
+        if (songQueue.songList.length === 0) {
+          searching.delete();
+          client.queue.delete(guild.id);
+          songQueue.voiceChannel.leave();
+          return;
+        }
+        if (songQueue.songList[0].length >= 2) {
+          songQueue.songList[0][0].shift();
+          videoPlayer(guild, songQueue.songList[0][0], client, channel);
+        } else {
+          songQueue.songList.splice(0, 1); //刪除陣列中第一個元素
+          videoPlayer(guild, songQueue.songList[0][0], client, channel);
+        }
       });
     searching.delete();
     const songAdded = new MessageEmbed();
@@ -42,15 +62,12 @@ const videoPlayer = async (guild, song, client, channel, fastForward) => {
         { name: 'Duration', value: song.duration, inline: true }
       )
       .setFooter(
-        `${`${song.index}/${songQueue.songList.length}`}`,
+        `${`${song.index}/${countSongs(songQueue.songList)}`}`,
         client.config.youtubeIconUrl
       );
-    if (fastForward) {
-      song.durationSec = fastForward;
-    }
-    await channel
-      .send(songAdded)
-      .then(msg => msg.delete({ timeout: song.durationSec * 1000 }));
+    await channel.send(songAdded).then(msg => {
+      msg.delete({ timeout: song.durationSec * 1000 });
+    });
   } catch (err) {
     throw err;
   }
@@ -83,34 +100,34 @@ module.exports = {
     if (cmd === 'play' || cmd === 'p') {
       if (!args.length)
         return channel.send('You need to send the second argument');
-      let song = {};
+      let song = [{}];
       const songList = [];
       //判斷是不是網址
       if (ytdl.validateURL(args[0]) || args[0].match(/\?/)) {
         //str.match(正則表達式) ， 如果網址當中含有?list=PL或&list= (使用\轉義特殊符號，因為要用來判斷是否含有?號，在正則表達式當中的?號代表重複前面內容的0次或一次)
         if (args[0].match(/\?list=PL/i) || args[0].match(/&list=PL/i)) {
-          //let traverseTimes = 0;
           const playlist = await ytpl(urlArray, { pages: 1 }); //List:playList的ID
-          console.log('playlist searching');
           playlist.items.forEach(el => {
-            //traverseTimes += 1;
+            el.requester = message.author.username;
+            el.isUrl = true;
             songList.push(el);
-            //songList[traverseTimes].requester = message.author.username;
-            //songList.push(el.shortUrl);
           });
         } else {
           const songInfo = await ytdl.getInfo(args[0]);
-          song = {
-            index: songList.length + 1,
-            isUrl: true,
-            title: songInfo.videoDetails.title,
-            url: songInfo.videoDetails.video_url,
-            views: thousandsSeparators(songInfo.videoDetails.viewCount),
-            duration: formatSecond(songInfo.videoDetails.lengthSeconds),
-            durationSec: songList.length_seconds,
-            publishDate: songInfo.videoDetails.publishDate,
-            requester: message.author.username
-          };
+          song = [
+            {
+              index: songList.length + 1,
+              isUrl: true,
+              title: songInfo.videoDetails.title,
+              url: songInfo.videoDetails.video_url,
+              views: thousandsSeparators(songInfo.videoDetails.viewCount),
+              duration: formatSecond(songInfo.videoDetails.lengthSeconds),
+              durationSec: songList.length_seconds,
+              publishDate: songInfo.videoDetails.publishDate,
+              author: songInfo.videoDetails.author.name,
+              requester: message.author.username
+            }
+          ];
         }
 
         // If the video is not a URL then use keywords to find that video.
@@ -121,20 +138,22 @@ module.exports = {
         };
         const video = await videoFinder(args.join(' '));
         if (video) {
-          song = {
-            index: songList.length + 1,
-            isUrl: false,
-            title: video.title,
-            url: video.url,
-            description: video.description,
-            thumbnail: video.thumbnail,
-            duration: video.timestamp,
-            durationSec: video.seconds,
-            ago: video.ago,
-            views: thousandsSeparators(video.views),
-            author: video.author.name,
-            requester: message.author.username
-          };
+          song = [
+            {
+              index: songList.length + 1,
+              isUrl: false,
+              title: video.title,
+              url: video.url,
+              description: video.description,
+              thumbnail: video.thumbnail,
+              duration: video.timestamp,
+              durationSec: video.seconds,
+              ago: video.ago,
+              views: thousandsSeparators(video.views),
+              author: video.author.name,
+              requester: message.author.username
+            }
+          ];
         } else {
           channel.send('Error finding video!');
         }
@@ -144,16 +163,20 @@ module.exports = {
           voiceChannel,
           textChannel: message.channel, //使用者在此頻道下指令
           connection: null,
-          songList: songList
+          songList: []
         };
         client.queue.set(message.guild.id, queueConstructor);
-        queueConstructor.songList.push(song);
+        if (!song[0].index) {
+          queueConstructor.songList.push(songList);
+        } else {
+          queueConstructor.songList.push(song);
+        }
         try {
           const connection = await voiceChannel.join(); //對應到第79行的play，等待機器人連線才能播放
           queueConstructor.connection = connection;
           videoPlayer(
             message.guild,
-            queueConstructor.songList[0],
+            queueConstructor.songList[0][0],
             client,
             channel
           );
@@ -162,9 +185,20 @@ module.exports = {
           channel.send('❌:There was an error connecting!');
           throw err;
         }
+      } else if (!song[0].index) {
+        serverQueue.songList.push(songList);
+        channel.send(
+          `playlist: 🎶 ${songList.length} added to queue! Total:${countSongs(
+            serverQueue.songList
+          )}`
+        );
       } else {
         serverQueue.songList.push(song);
-        channel.send(`🎶 ${song.title} added to queue!`);
+        channel.send(
+          `🎶 ${song[0].title} added to queue! Total:${countSongs(
+            serverQueue.songList
+          )}`
+        );
       }
     }
   }

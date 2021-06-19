@@ -15,13 +15,13 @@ module.exports = {
         embed: { title: 'There is nothing playing right now' }
       });
     }
-    if (songQueue.songs[0].isUrl === true) {
+    if (songQueue.songList[0].isUrl === true) {
       channel.send({
         embed: {
           title: 'Now Playing',
           color: '#FF0000',
           description: `${
-            songQueue.songs[0].title
+            songQueue.songList[0].title
           } - ${message.author.toString()}`
         }
       });
@@ -31,7 +31,7 @@ module.exports = {
           title: 'Now Playing',
           color: '#FF0000',
           description: `${
-            songQueue.songs[0].title
+            songQueue.songList[0].title
           } - ${message.author.toString()}`,
           thumbnail: songQueue.songs[0].thumbnail
         }
