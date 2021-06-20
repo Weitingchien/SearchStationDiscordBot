@@ -86,7 +86,6 @@ module.exports = async (client, message) => {
   try {
     command.execute(client, message, cmd, args); //執行對應指令的execute方法
   } catch (err) {
-    console.error(err);
     message.reply('There was an error trying to execute that command!');
   }
 };

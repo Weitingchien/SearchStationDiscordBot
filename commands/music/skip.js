@@ -16,13 +16,11 @@ module.exports = {
         embed: { description: 'There are no songs in queue' }
       });
     }
+    if (songQueue.connection.dispatcher.paused) {
+      return channel.send({
+        embed: { description: 'You need to resume song before you skip' }
+      });
+    }
     songQueue.connection.dispatcher.end();
-    /*     videoPlayer(
-      message.guild,
-      songQueue.songList[0],
-      client,
-      channel,
-      fastForward
-    ); */
   }
 };

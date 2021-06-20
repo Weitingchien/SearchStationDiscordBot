@@ -31,19 +31,28 @@ const videoPlayer = async (guild, song, client, channel) => {
     const stream = await ytdl(song.shortUrl || song.url);
     songQueue.connection
       .play(stream, { type: 'opus', highWaterMark: 15 })
+      //dispatcher.end();執行會觸發finish事件
       .on('finish', () => {
-        //dispatcher.end();執行會跑到這個callback function
-        if (songQueue.songList.length === 0) {
+        //!stop
+        if (songQueue.songList.length === 0 || !songQueue.songList[0][0]) {
           searching.delete();
           client.queue.delete(guild.id);
           songQueue.voiceChannel.leave();
-          return;
         }
-        if (songQueue.songList[0].length >= 2) {
-          songQueue.songList[0][0].shift();
+        //playlist
+        else if (songQueue.songList[0].length >= 2) {
+          songQueue.songList[0].splice(0, 1);
           videoPlayer(guild, songQueue.songList[0][0], client, channel);
+          //!skip
         } else {
           songQueue.songList.splice(0, 1); //刪除陣列中第一個元素
+          if (songQueue.songList.length === 0) {
+            client.queue.delete(guild.id);
+            return channel.send({
+              embed: { description: 'There are no songs in queue' }
+            });
+          }
+
           videoPlayer(guild, songQueue.songList[0][0], client, channel);
         }
       });
@@ -65,9 +74,10 @@ const videoPlayer = async (guild, song, client, channel) => {
         `${`${song.index}/${countSongs(songQueue.songList)}`}`,
         client.config.youtubeIconUrl
       );
-    await channel.send(songAdded).then(msg => {
+    /*     await channel.send(songAdded).then(msg => {
       msg.delete({ timeout: song.durationSec * 1000 });
-    });
+    }); */
+    await channel.send(songAdded);
   } catch (err) {
     throw err;
   }

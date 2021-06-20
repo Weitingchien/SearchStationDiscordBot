@@ -15,14 +15,16 @@ module.exports = {
         embed: { title: 'There is nothing playing right now' }
       });
     }
-    if (songQueue.songList[0].isUrl === true) {
+    if (
+      songQueue.songList[0].isUrl === true ||
+      songQueue.songList[0][0].isUrl === true
+    ) {
       channel.send({
         embed: {
           title: 'Now Playing',
           color: '#FF0000',
-          description: `${
-            songQueue.songList[0].title
-          } - ${message.author.toString()}`
+          description: `${songQueue.songList[0].title ||
+            songQueue.songList[0][0].title} - ${message.author.toString()}`
         }
       });
     } else {
@@ -33,7 +35,7 @@ module.exports = {
           description: `${
             songQueue.songList[0].title
           } - ${message.author.toString()}`,
-          thumbnail: songQueue.songs[0].thumbnail
+          thumbnail: songQueue.songList[0].thumbnail
         }
       });
     }

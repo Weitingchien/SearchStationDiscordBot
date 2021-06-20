@@ -17,12 +17,14 @@ module.exports = {
         embed: { description: 'There is nothing playing right now to pause' }
       });
     }
-    songQueue.connection.dispatcher.pause();
-    const songPause = new MessageEmbed()
-      .setColor('#FF0000')
-      .setDescription(
-        `⏸ If you want to continue play music Please use \`!resume\``
-      );
-    channel.send(songPause);
+    if (!songQueue.connection.dispatcher.paused) {
+      songQueue.connection.dispatcher.pause();
+      const songPause = new MessageEmbed()
+        .setColor('#FF0000')
+        .setDescription(
+          `⏸ If you want to continue play music Please use \`!resume\``
+        );
+      channel.send(songPause);
+    }
   }
 };
