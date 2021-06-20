@@ -12,6 +12,7 @@ module.exports = async (client, message) => {
   if (message.channel.type === 'dm') return; //如果是直接消息頻道就return
   if (
     !message.content.startsWith(process.env.DISCORD_Bot_Prefix) ||
+    !command ||
     message.author.bot
   )
     return; //如果訊息開頭沒有prefix或是發訊息的是機器人就return
@@ -85,7 +86,6 @@ module.exports = async (client, message) => {
   try {
     command.execute(client, message, cmd, args); //執行對應指令的execute方法
   } catch (err) {
-    console.error(err);
     message.reply('There was an error trying to execute that command!');
   }
 };

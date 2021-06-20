@@ -1,12 +1,10 @@
-const { videoPlayer } = require('./play');
-
 module.exports = {
   name: 'skip',
   cooldown: 0,
   description: 'Skip current song',
   //permissions: ['CONNECT'],
   async execute(client, message) {
-    const channel = client.channels.cache.get('853660743433453599');
+    const channel = client.channels.cache.get('855172507250589726');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件
     if (!message.member.voice.channel) {
       return channel.send(
@@ -18,8 +16,11 @@ module.exports = {
         embed: { description: 'There are no songs in queue' }
       });
     }
-    songQueue.songs.shift();
-    songQueue.connection.dispatcher.destroy();
-    videoPlayer(message.guild, songQueue.songs[0], client, channel);
+    if (songQueue.connection.dispatcher.paused) {
+      return channel.send({
+        embed: { description: 'You need to resume song before you skip' }
+      });
+    }
+    songQueue.connection.dispatcher.end();
   }
 };

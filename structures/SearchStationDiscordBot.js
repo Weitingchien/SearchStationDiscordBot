@@ -4,13 +4,14 @@ const { readdir } = require('fs/promises');
 
 class SearchStationDiscordBot extends Client {
   constructor(props) {
+    //沒呼叫super(props)前不能使用this
     super(props);
     this.commands = new Collection();
     this.cooldowns = new Map();
     this.queue = new Map();
     this.config = require('../config');
 
-    this.start();
+    this.start(); //執行loadCommands()、loadEvents()
   }
 
   async loadCommands() {
