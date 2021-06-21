@@ -1,6 +1,6 @@
 module.exports = {
   name: 'skip',
-  cooldown: 0,
+  cooldown: 1,
   description: 'Skip current song',
   //permissions: ['CONNECT'],
   async execute(client, message) {

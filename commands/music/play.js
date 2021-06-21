@@ -86,7 +86,7 @@ const videoPlayer = async (guild, song, client, channel) => {
 module.exports = {
   name: 'play',
   aliases: ['p'],
-  cooldown: 0,
+  cooldown: 3,
   description: 'Play music',
   //permissions: ['CONNECT', 'SPEAK'],
   //導出videoPlayer函式表達式給skip
@@ -110,23 +110,25 @@ module.exports = {
     if (cmd === 'play' || cmd === 'p') {
       if (!args.length)
         return channel.send('You need to send the second argument');
-      let song = [{}];
+      let song = [];
       const songList = [];
       //判斷是不是網址
       if (ytdl.validateURL(args[0]) || args[0].match(/\?/)) {
         //str.match(正則表達式) ， 如果網址當中含有?list=PL或&list= (使用\轉義特殊符號，因為要用來判斷是否含有?號，在正則表達式當中的?號代表重複前面內容的0次或一次)
         if (args[0].match(/\?list=PL/i) || args[0].match(/&list=PL/i)) {
           const playlist = await ytpl(urlArray, { pages: 1 }); //List:playList的ID
+          console.log(playlist.items);
           playlist.items.forEach(el => {
-            el.requester = message.author.username;
+            el.requester = message.author.id;
             el.isUrl = true;
+            el.timestamp = Date.now();
             songList.push(el);
           });
         } else {
           const songInfo = await ytdl.getInfo(args[0]);
           song = [
             {
-              index: songList.length + 1,
+              index: songList.length + 1 || 1,
               isUrl: true,
               title: songInfo.videoDetails.title,
               url: songInfo.videoDetails.video_url,
@@ -135,9 +137,11 @@ module.exports = {
               durationSec: songList.length_seconds,
               publishDate: songInfo.videoDetails.publishDate,
               author: songInfo.videoDetails.author.name,
-              requester: message.author.username
+              requester: message.author.id,
+              timestamp: Date.now()
             }
           ];
+          songList.push(songList);
         }
 
         // If the video is not a URL then use keywords to find that video.
@@ -161,7 +165,8 @@ module.exports = {
               ago: video.ago,
               views: thousandsSeparators(video.views),
               author: video.author.name,
-              requester: message.author.username
+              requester: message.author.id,
+              timestamp: Date.now()
             }
           ];
         } else {
@@ -176,7 +181,7 @@ module.exports = {
           songList: []
         };
         client.queue.set(message.guild.id, queueConstructor);
-        if (!song[0].index) {
+        if (song.length === 0) {
           queueConstructor.songList.push(songList);
         } else {
           queueConstructor.songList.push(song);
@@ -195,7 +200,7 @@ module.exports = {
           channel.send('❌:There was an error connecting!');
           throw err;
         }
-      } else if (!song[0].index) {
+      } else if (song.length === 0) {
         serverQueue.songList.push(songList);
         channel.send(
           `playlist: 🎶 ${songList.length} added to queue! Total:${countSongs(

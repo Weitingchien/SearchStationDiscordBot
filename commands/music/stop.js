@@ -1,6 +1,6 @@
 module.exports = {
   name: 'stop',
-  cooldown: 0,
+  cooldown: 1,
   description: 'Stop song',
   async execute(client, message) {
     const channel = client.channels.cache.get('855172507250589726');

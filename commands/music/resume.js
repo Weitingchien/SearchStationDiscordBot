@@ -2,7 +2,7 @@ const { MessageEmbed } = require('discord.js');
 
 module.exports = {
   name: 'resume',
-  cooldown: 0,
+  cooldown: 1,
   description: 'Resume song',
   execute(client, message) {
     const channel = client.channels.cache.get('855172507250589726');
