@@ -15,6 +15,11 @@ module.exports = {
         embed: { description: 'There are no songs need to stop' }
       });
     }
+    if (songQueue.connection.dispatcher.paused) {
+      return channel.send({
+        embed: { description: 'You need to resume song before you stop' }
+      });
+    }
     songQueue.songList = [];
     await songQueue.connection.dispatcher.end();
   }

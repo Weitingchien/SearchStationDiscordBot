@@ -2,9 +2,10 @@ const { MessageEmbed } = require('discord.js');
 
 module.exports = {
   name: 'queue',
+  aliases: ['q'],
   cooldown: 3,
   description: 'All songs info',
-  async execute(client, message) {
+  async execute(client, message, cmd, args) {
     const channel = client.channels.cache.get('855172507250589726');
     const songQueue = client.queue.get(message.guild.id); //回傳一個queueConstructor的物件
     if (!message.member.voice.channel) {
@@ -38,11 +39,40 @@ module.exports = {
     const getAllSongsAscending = getAllSongs.sort((a, b) => {
       return a.timestamp - b.timestamp; //最早的時間戳值比最晚的時間戳值小，使用sort升冪排序
     });
-    getAllSongsAscending.forEach(async el => {
-      await queueCommands
-        .addField(`\`[${el.duration}]\` ${el.title}`, `<@${el.requester}>`)
-        .setFooter(`Page ${Math.ceil(getAllSongsAscending.length / 26)}`);
+    const totalPage = parseInt(getAllSongsAscending.length / 10, 10);
+    getAllSongsAscending.forEach(async (el, index) => {
+      el.id = index + 1;
     });
-    channel.send(queueCommands);
+
+    if (args[0] <= `p${totalPage}`) {
+      const selectSong = args[0].substr(1) * 10;
+      const selectCache = [];
+
+      for (let i = selectSong; i < selectSong + 10; i += 1) {
+        if (!getAllSongsAscending[i]) break;
+        selectCache.push(getAllSongsAscending[i]);
+      }
+      selectCache.forEach(async el => {
+        queueCommands
+          .addField(
+            `\`${el.id}.\` \`[${el.duration}]\` ${el.title}`,
+            `<@${el.requester}>`
+          )
+          .setFooter(`Page ${selectSong / 10}/${totalPage}`);
+      });
+      channel.send(queueCommands);
+    } else {
+      for (let i = 0; i < 10; i += 1) {
+        queueCommands
+          .addField(
+            `\`${getAllSongsAscending[i].id}.\` \`[${
+              getAllSongsAscending[i].duration
+            }]\` ${getAllSongsAscending[i].title}`,
+            `<@${getAllSongsAscending[i].requester}>`
+          )
+          .setFooter(`Page 1/${totalPage}`);
+      }
+      channel.send(queueCommands);
+    }
   }
 };

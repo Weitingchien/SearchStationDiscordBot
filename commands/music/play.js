@@ -2,8 +2,11 @@ const { MessageEmbed } = require('discord.js');
 const ytdl = require('ytdl-core-discord');
 const ytpl = require('ytpl'); //搜尋playlist
 const ytSearch = require('yt-search');
+//const { getAllSongsAscending } = require('./queue');
 const formatSecond = require('../.././plugin/timeTransformer'); //秒數轉時分秒
-const thousandsSeparators = require('../../plugin/thousandsSeparators'); //千分位分隔符號
+const thousandsSeparators = require('../../plugin/thousandsSeparators');
+//千分位分隔符號
+//console.log(getAllSongsAscending);
 
 const countSongs = songQueue => {
   let numOfSongs = 0;
@@ -35,7 +38,7 @@ const videoPlayer = async (guild, song, client, channel) => {
       .on('finish', () => {
         //!stop
         if (songQueue.songList.length === 0 || !songQueue.songList[0][0]) {
-          searching.delete();
+          //searching.delete();
           client.queue.delete(guild.id);
           songQueue.voiceChannel.leave();
         }
@@ -117,7 +120,6 @@ module.exports = {
         //str.match(正則表達式) ， 如果網址當中含有?list=PL或&list= (使用\轉義特殊符號，因為要用來判斷是否含有?號，在正則表達式當中的?號代表重複前面內容的0次或一次)
         if (args[0].match(/\?list=PL/i) || args[0].match(/&list=PL/i)) {
           const playlist = await ytpl(urlArray, { pages: 1 }); //List:playList的ID
-          console.log(playlist.items);
           playlist.items.forEach(el => {
             el.requester = message.author.id;
             el.isUrl = true;
