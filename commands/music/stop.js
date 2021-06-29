@@ -1,6 +1,6 @@
 module.exports = {
   name: 'stop',
-  cooldown: 0,
+  cooldown: 1,
   description: 'Stop song',
   async execute(client, message) {
     const channel = client.channels.cache.get('855172507250589726');
@@ -13,6 +13,11 @@ module.exports = {
     if (!songQueue) {
       return channel.send({
         embed: { description: 'There are no songs need to stop' }
+      });
+    }
+    if (songQueue.connection.dispatcher.paused) {
+      return channel.send({
+        embed: { description: 'You need to resume song before you stop' }
       });
     }
     songQueue.songList = [];

@@ -2,8 +2,11 @@ const { MessageEmbed } = require('discord.js');
 const ytdl = require('ytdl-core-discord');
 const ytpl = require('ytpl'); //搜尋playlist
 const ytSearch = require('yt-search');
+//const { getAllSongsAscending } = require('./queue');
 const formatSecond = require('../.././plugin/timeTransformer'); //秒數轉時分秒
-const thousandsSeparators = require('../../plugin/thousandsSeparators'); //千分位分隔符號
+const thousandsSeparators = require('../../plugin/thousandsSeparators');
+//千分位分隔符號
+//console.log(getAllSongsAscending);
 
 const countSongs = songQueue => {
   let numOfSongs = 0;
@@ -35,7 +38,7 @@ const videoPlayer = async (guild, song, client, channel) => {
       .on('finish', () => {
         //!stop
         if (songQueue.songList.length === 0 || !songQueue.songList[0][0]) {
-          searching.delete();
+          //searching.delete();
           client.queue.delete(guild.id);
           songQueue.voiceChannel.leave();
         }
@@ -86,7 +89,7 @@ const videoPlayer = async (guild, song, client, channel) => {
 module.exports = {
   name: 'play',
   aliases: ['p'],
-  cooldown: 0,
+  cooldown: 3,
   description: 'Play music',
   //permissions: ['CONNECT', 'SPEAK'],
   //導出videoPlayer函式表達式給skip
@@ -110,7 +113,7 @@ module.exports = {
     if (cmd === 'play' || cmd === 'p') {
       if (!args.length)
         return channel.send('You need to send the second argument');
-      let song = [{}];
+      let song = [];
       const songList = [];
       //判斷是不是網址
       if (ytdl.validateURL(args[0]) || args[0].match(/\?/)) {
@@ -118,15 +121,16 @@ module.exports = {
         if (args[0].match(/\?list=PL/i) || args[0].match(/&list=PL/i)) {
           const playlist = await ytpl(urlArray, { pages: 1 }); //List:playList的ID
           playlist.items.forEach(el => {
-            el.requester = message.author.username;
+            el.requester = message.author.id;
             el.isUrl = true;
+            el.timestamp = Date.now();
             songList.push(el);
           });
         } else {
           const songInfo = await ytdl.getInfo(args[0]);
           song = [
             {
-              index: songList.length + 1,
+              index: songList.length + 1 || 1,
               isUrl: true,
               title: songInfo.videoDetails.title,
               url: songInfo.videoDetails.video_url,
@@ -135,9 +139,11 @@ module.exports = {
               durationSec: songList.length_seconds,
               publishDate: songInfo.videoDetails.publishDate,
               author: songInfo.videoDetails.author.name,
-              requester: message.author.username
+              requester: message.author.id,
+              timestamp: Date.now()
             }
           ];
+          songList.push(songList);
         }
 
         // If the video is not a URL then use keywords to find that video.
@@ -161,7 +167,8 @@ module.exports = {
               ago: video.ago,
               views: thousandsSeparators(video.views),
               author: video.author.name,
-              requester: message.author.username
+              requester: message.author.id,
+              timestamp: Date.now()
             }
           ];
         } else {
@@ -176,7 +183,7 @@ module.exports = {
           songList: []
         };
         client.queue.set(message.guild.id, queueConstructor);
-        if (!song[0].index) {
+        if (song.length === 0) {
           queueConstructor.songList.push(songList);
         } else {
           queueConstructor.songList.push(song);
@@ -195,7 +202,7 @@ module.exports = {
           channel.send('❌:There was an error connecting!');
           throw err;
         }
-      } else if (!song[0].index) {
+      } else if (song.length === 0) {
         serverQueue.songList.push(songList);
         channel.send(
           `playlist: 🎶 ${songList.length} added to queue! Total:${countSongs(
