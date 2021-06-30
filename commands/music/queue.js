@@ -44,7 +44,7 @@ module.exports = {
       el.id = index + 1;
     });
 
-    if (args[0] <= `p${totalPage}`) {
+    if (args[0] <= `p${totalPage}` && args[0] >= `p${1}`) {
       const selectSong = args[0].substr(1) * 10;
       const selectCache = [];
 
@@ -70,7 +70,7 @@ module.exports = {
             }]\` ${getAllSongsAscending[i].title}`,
             `<@${getAllSongsAscending[i].requester}>`
           )
-          .setFooter(`Page 1/${totalPage}`);
+          .setFooter(`Page 0/${totalPage}`);
       }
       channel.send(queueCommands);
     }

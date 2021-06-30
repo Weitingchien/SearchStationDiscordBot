@@ -17,7 +17,7 @@ module.exports = async (client, message) => {
   )
     return; //如果訊息開頭沒有prefix或是發訊息的是機器人就return
 
-  const allPermissions = [
+  /*   const allPermissions = [
     'ADMINISTRATOR',
     'CREATE_INSTANT_INVITE',
     'KICK_MEMBERS',
@@ -48,7 +48,7 @@ module.exports = async (client, message) => {
     'MANAGE_ROLES',
     'MANAGE_WEBHOOKS',
     'MANAGE_EMOJIS'
-  ];
+  ]; */
   /*   const musicPermissions = message.member.voice.channel.permissionsFor(
     message.client.user
   ); //獲取此頻道中成員整體權限集
